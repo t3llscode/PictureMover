@@ -78,39 +78,18 @@ class Mover:
             elif file.filePath == Essentials.vidPath:
                 tmp = [dateList[1]]
             tmp[0].append(file.cDate.strftime("%Y-%m-%d"))
-        for dates in range(len(dateList)):
-            for date in list(dict.fromkeys(dates)):
-                if len(dateList) == 0:
+        for d in range(len(dateList)):
+            for date in list(dict.fromkeys(dateList[d])):
+                if d == 0:
                     tmp = [self.picDir, "Picture Directory"]
-                elif len(dateList) == 1:
+                elif d == 1:
                     tmp = [self.vidDir, "Video Directory"]
                 try:    
                     os.makedirs(tmp[0] + date, exist_ok = False)
                     print(f"[LOG] Created {tmp[1]} \"{date}\"")
                 except:
                     print(f"[WARNING] {tmp[1]} \"{date}\" already existing")
-
-    # def createFolders(self):
-    #     picDates = []
-    #     vidDates = []
-    #     for file in self.files:
-    #         if file.filePath == Essentials.picPath:
-    #             picDates.append(file.cDate.strftime("%Y-%m-%d"))
-    #         elif file.filePath == Essentials.vidPath:
-    #             vidDates.append(file.cDate.strftime("%Y-%m-%d"))
-    #     for date in list(dict.fromkeys(picDates)):
-    #         try:    
-    #               os.makedirs(tmp[0] + date, exist_ok = False)
-    #               print(f"[LOG] Created Picture Directory \"{date}\"")
-    #         except:
-    #               print(f"[WARNING] Created {tmp[1]} \"{date}\"")
-    #     for date in list(dict.fromkeys(vidDates)):
-    #         try:    
-    #               os.makedirs(tmp[0] + date, exist_ok = False)
-    #               print(f"[LOG] Created Video Directory \"{date}\"")
-    #         except:
-    #               print(f"[WARNING] Created {tmp[1]} \"{date}\"")    
-        
+    
     def moveFiles(self):
         for file in self.files:
             shutil.copy2(file.path, file.filePath + file.cDate.strftime("%Y-%m-%d\\") + file.name)
