@@ -9,17 +9,18 @@ def main():
 
 class Essentials:
 
-    picSuffixes = [".ARW", ".JPG"]
+    picSuffixes = [".ARW", ".JPG", ".dng", ".tif"]
     vidSuffixes = [".XML", ".MP4"]
 
     allSuffixes = []
     for l in (picSuffixes,vidSuffixes):
         allSuffixes.extend(l) 
 
-    picPath = "D:\\01 Media\\00 Pictures\\"
-    vidPath = "D:\\01 Media\\01 Videos\\"
+    picPath = "E:\\01 Media\\00 Pictures\\"
+    vidPath = "E:\\01 Media\\01 Videos\\"
+    errPath = "E:\\01 Media\\_Transfer Errors\\"
 
-    sdCard = "H:\\"
+    sdCard = "G:\\"
 
 class File:
 
@@ -43,7 +44,7 @@ class File:
             return Essentials.vidPath
         else:
             print(f"[WARNING] {os.path.basename(self.path)} is in an unknown File Format")
-            return "error"
+            return Essentials.errPath
         
 class Mover:
 
