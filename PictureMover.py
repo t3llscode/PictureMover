@@ -1,138 +1,130 @@
 import os
 import glob
 import shutil
-from typing import List
 from datetime import datetime
+from datetime import timedelta as TD
 
 def main():
-
-    directories = []
-    directories.append(Directory(Es.picPath, Es.picSuffixes))
-    directories.append(Directory(Es.vidPath, Es.vidSuffixes))
-    srcDirectories = []
-    srcDirectories.append(srcDirectory(Es.sdCard, Es.allSuffixes, True))
-
-    # pictureMove = Mover(Es.sdCard, Es.picPath, Es.vidPath, True)
+    
+    while True:
+        os.system("cls")
+        Es.resetLog()
+        pictureMove = Mover([Directory(Es.sdCard, Es.allSuffixes)], [Directory(Es.picPath, Es.picSuffixes), Directory(Es.vidPath, Es.vidSuffixes)])
+        input()
 
 class Es:
 
     picSuffixes = [".ARW", ".JPG", ".dng", ".tif"]
     vidSuffixes = [".XML", ".MP4"]
 
-    allSuffixes = []
-    for l in (picSuffixes,vidSuffixes):
-        allSuffixes.extend(l) 
+    allSuffixes = picSuffixes + vidSuffixes
 
     picPath = "E:\\01 Media\\00 Pictures\\"
     vidPath = "E:\\01 Media\\01 Videos\\"
-    errPath = "E:\\01 Media\\_Transfer Errors\\"
-
     sdCard = "G:\\"
+
+    logDir = "C:\\Users\\hense\\AppData\\Local\\Temp\\PictureMoverLogs.txt"
+
+    def log(text):
+        t = str(datetime.now()) + " " + text
+        with open(Es.logDir, "a") as file:
+            file.write(t + "\n")
+
+    def resetLog():
+        with open(Es.logDir, "w") as file:
+            file.write("")
 
 class File:
 
     path = None
     name = None
     suffix = None
+    sizeMB = 0.0
     cDate = None
 
     def __init__(self, _path) -> None:
         self.path = _path.replace("\\", "\\\\")
         self.name = os.path.basename(self.path)
         self.suffix = os.path.splitext(self.path)[-1]
+        self.sizeMB = os.path.getsize(self.path)/1024/1024
         self.cDate = datetime.fromtimestamp(os.path.getctime(self.path))
 
 class Directory:
 
     path = None
     acceptedSuffixes = None
-    
-    def __init__(self, _path, _acceptedSuffixes) -> None:
-        self.path = _path
-        self.acceptedSuffixes = _acceptedSuffixes
-
-    def createDir(self):
-        try:    
-            os.makedirs(self.path, exist_ok = False)
-            print(f"[LOG] Created directory {self.path}")
-        except:
-            print(f"[WARNING] Directory {self.path} already existing")
-
-class dstDirectory(Directory):
-
     files = None
     
     def __init__(self, _path, _acceptedSuffixes) -> None:
-        super().__init__(_path, _acceptedSuffixes)
+        self.path = _path
+        self.createDir()
+        self.acceptedSuffixes = _acceptedSuffixes
         self.files = self.updateFiles()
-        
 
-    def updateFiles(self):    # Test if its faster to search for files with suffix, or search for all and filter those with suffix
+    def createDir(self):
+        while not os.path.exists(self.path):
+            try:    
+                os.makedirs(self.path, exist_ok = False)
+                Es.log(f"Directory {self.path} was created")
+            except:
+                input(f"Please ensure that {self.path} is available and confirm with \"Enter\".")
+                os.system("cls")     
+
+    def updateFiles(self):
         tmp = []
         for suffix in self.acceptedSuffixes:
-            for path in glob.glob(self.path + "**\\*" + suffix, recursive = self.includeSub):
+            for path in glob.glob(self.path + "**\\*" + suffix, recursive = True):
                 tmp.append(File(path))
-        self.files = tmp
+        return tmp
 
-class srcDirectory(dstDirectory):
+class Mover:
 
-    includeSub = None
+    srcDirs = []
+    desDirs = []
+    srcFiles = []
+    moves = []
+    movesMB = 0
 
-    def __init__(self, _path, _acceptedSuffixes, _includeSub) -> None:
-        super().__init__(_path, _acceptedSuffixes)
-        self.includeSub = _includeSub
+    def __init__(self, _srcDirs, _desDirs) -> None:
+        self.srcDirs = _srcDirs
+        self.desDirs = _desDirs
+        self.srcFiles = [file for dir in self.srcDirs for file in dir.files]
+        self.movesMB = self.initiateMove()
+        if len(self.moves) is not 0:
+            self.move()
+        else:
+            print("All files are up to date!")
 
+    def initiateMove(self):
+        for dir in self.desDirs:
+            files = list(filter(lambda file: file.path.endswith(tuple(dir.acceptedSuffixes)) and not os.path.exists(dir.path + file.cDate.strftime("%Y-%m-%d\\") + file.name), self.srcFiles))
+            for file in files:
+                self.moves.append([file, dir])
+                Es.log(f"File \"{file.path}\" was linked to Directory \"{dir.path}\"")
+        print(f"Detected {len(self.srcFiles) - len(self.moves)} known and {len(self.moves)} new files on {', '.join(map(str, [dir.path for dir in self.srcDirs]))}")
+        return round(sum([dataset[0].sizeMB for dataset in self.moves]), 2)
 
+    def move(self):
+        mbTransferred = [[0.0, datetime.now()]]
+        
+        print(f"Moving {len(self.moves)} files, {self.movesMB} MB in size")
+        for dataset in self.moves:
+            desDir = dataset[1].path + dataset[0].cDate.strftime("%Y-%m-%d\\")
+            if not os.path.exists(desDir):
+                Directory(desDir, dataset[1].acceptedSuffixes)
+            shutil.copy2(dataset[0].path, desDir + dataset[0].name)
+            mbTransferred.append([mbTransferred[-1][0] + dataset[0].sizeMB, datetime.now()])
+            print(self.getTransferedOverview(mbTransferred) + Mover.getTransferedSpeed(mbTransferred), end = "\r")
+        print("Transfer successfully completed!                                                                                              \nDetailed Log: " + Es.logDir)
 
-# class Mover:
+    def getTransferedSpeed(list):
+        if len(list) > 1:
+            return f" (@ {round(((list[-2][0]- list[-1][0]) / TD.total_seconds(list[-2][1]- list[-1][1])), 2)} MB/s)                                                      "
+        else:
+            return ""
 
-#     searchDir = None
-#     picDir = None
-#     vidDir = None
-#     searchSub = True
-#     files = []
-
-#     def __init__(self, _searchDir, _picDir, _vidDir, _searchSub) -> None:
-#         self.directory = _searchDir
-#         self.picDir = _picDir
-#         self.vidDir = _vidDir
-#         self.searchSub = _searchSub
-#         self.files = self.findFiles()
-#         self.createFolders()
-#         self.moveFiles()
-
-    # def findFiles(self): 
-    #     tmp = []  
-    #     for suffix in Essentials.allSuffixes:
-    #         for path in glob.glob(self.directory + "**\\*" + suffix, recursive = self.searchSub):
-    #             tmp.append(File(path))
-    #     return tmp
-
-#     def createFolders(self):
-#         tmp = []
-#         dateList = [[], []] # List containing the dates the pics / vids were created # 0 = pic # 1 = vid
-#         for file in self.files:
-#             if file.filePath == Essentials.picPath:
-#                 tmp = [dateList[0]]
-#             elif file.filePath == Essentials.vidPath:
-#                 tmp = [dateList[1]]
-#             tmp[0].append(file.cDate.strftime("%Y-%m-%d"))
-#         for d in range(len(dateList)):
-#             for date in list(dict.fromkeys(dateList[d])):
-#                 if d == 0:
-#                     tmp = [self.picDir, "Picture Directory"]
-#                 elif d == 1:
-#                     tmp = [self.vidDir, "Video Directory"]
-                # try:    
-                #     os.makedirs(tmp[0] + date, exist_ok = False)
-                #     print(f"[LOG] Created {tmp[1]} \"{date}\"")
-                # except:
-                #     print(f"[WARNING] {tmp[1]} \"{date}\" already existing")
-    
-#     def moveFiles(self):
-#         for file in self.files:
-#             shutil.copy2(file.path, file.filePath + file.cDate.strftime("%Y-%m-%d\\") + file.name)
-#             print(f"[LOG] {file.name} was moved to " + file.filePath + file.cDate.strftime("%Y-%m-%d\\") + file.name)
+    def getTransferedOverview(self, list):
+        return f"File {len(list)}/{len(self.moves)} - {round(list[-1][0], 2)}/{self.movesMB} MB"
 
 if __name__=="__main__":
     main()
