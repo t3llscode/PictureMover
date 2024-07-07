@@ -7,7 +7,7 @@ from datetime import timedelta as TD
 def main():
     
     while True:
-        os.system("cls")
+        #MAC os.system("cls")
         Es.resetLog()
         pictureMove = Mover([Directory(Es.sdCard, Es.allSuffixes)], [Directory(Es.picPath, Es.picSuffixes), Directory(Es.vidPath, Es.vidSuffixes)])
         input()
@@ -19,11 +19,17 @@ class Es:
 
     allSuffixes = picSuffixes + vidSuffixes
 
-    picPath = "\\\\xtance-local\\media\\01 Media\\00 Pictures\\"
-    vidPath = "\\\\xtance-local\\media\\01 Media\\01 Videos\\"
-    sdCard = "F:\\01 Media\\"
+    # end with slash
 
-    logDir = "C:\\Users\\hense\\AppData\\Local\\Temp\\PictureMoverLogs.txt"
+    # picPath = "/Volumes/media/01 Media/00 Pictures/"
+    # vidPath = "/Volumes/media/01 Media/01 Videos/"
+    # sdCard = "/Volumes/4TB 990Pro/SD Cards/"
+
+    picPath = "/Volumes/4TB 990Pro/SD Cards/00 Pictures/"
+    vidPath = "/Volumes/4TB 990Pro/SD Cards/01 Videos/"
+    sdCard = "/Volumes/Untitled/"
+
+    logDir = "/Users/tellhensel/Library/CloudStorage/OneDrive-Personal/03_Software/00_Scripts/PictureMover/logs/log.txt"
 
     def log(text):
         t = str(datetime.now()) + " " + text
@@ -43,8 +49,7 @@ class File:
     cDate = None
 
     def __init__(self, _path) -> None:
-        self.path = _path
-        # self.path = _path.replace("\\", "\\\\")
+        self.path = _path.replace("\\", "\\\\")
         self.name = os.path.basename(self.path)
         self.suffix = os.path.splitext(self.path)[-1]
         self.sizeMB = os.path.getsize(self.path)/1024/1024
@@ -69,12 +74,12 @@ class Directory:
                 Es.log(f"Directory {self.path} was created")
             except:
                 input(f"Please ensure that {self.path} is available and confirm with \"Enter\".")
-                os.system("cls")     
+                #MAC os.system("cls")     
 
     def updateFiles(self):
         tmp = []
         for suffix in self.acceptedSuffixes:
-            for path in glob.glob(self.path + "**\\*" + suffix, recursive = True):
+            for path in glob.glob(self.path + "**/*" + suffix, recursive = True):
                 tmp.append(File(path))
         return tmp
 
@@ -91,7 +96,7 @@ class Mover:
         self.desDirs = _desDirs
         self.srcFiles = [file for dir in self.srcDirs for file in dir.files]
         self.movesMB = self.initiateMove()
-        if len(self.moves) != 0:
+        if len(self.moves) > 0:
             self.move()
         else:
             print("All files are up to date!")
@@ -110,7 +115,7 @@ class Mover:
         
         print(f"Moving {len(self.moves)} files, {self.movesMB} MB in size")
         for dataset in self.moves:
-            desDir = dataset[1].path + dataset[0].cDate.strftime("%Y-%m-%d\\")
+            desDir = dataset[1].path + dataset[0].cDate.strftime("%Y-%m-%d/")
             if not os.path.exists(desDir):
                 Directory(desDir, dataset[1].acceptedSuffixes)
             shutil.copy2(dataset[0].path, desDir + dataset[0].name)
@@ -120,7 +125,7 @@ class Mover:
 
     def getTransferedSpeed(list):
         if len(list) > 1:
-            return f" (@ {round(((list[-2][0]- list[-1][0]) / TD.total_seconds(list[-2][1]- list[-1][1])), 2)} MB/s)                                                                        "
+            return f" (@ {round(((list[-2][0]- list[-1][0]) / TD.total_seconds(list[-2][1]- list[-1][1])), 2)} MB/s)                                                      "
         else:
             return ""
 
