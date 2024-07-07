@@ -29,7 +29,7 @@ class Es:
     vidPath = "/Volumes/4TB 990Pro/SD Cards/01 Videos/"
     sdCard = "/Volumes/Untitled/"
 
-    logDir = "/Users/tellhensel/Library/CloudStorage/OneDrive-Personal/03_Software/00_Scripts/PictureMover/logs/log.txt"
+    logDir = "/path/to/log.txt"
 
     def log(text):
         t = str(datetime.now()) + " " + text

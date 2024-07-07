@@ -23,7 +23,7 @@ class Es:
     vidPath = "\\\\xtance-local\\media\\01 Media\\01 Videos\\"
     sdCard = "F:\\01 Media\\"
 
-    logDir = "C:\\Users\\hense\\AppData\\Local\\Temp\\PictureMoverLogs.txt"
+    logDir = "C:\\path\\to\\log.txt"
 
     def log(text):
         t = str(datetime.now()) + " " + text
