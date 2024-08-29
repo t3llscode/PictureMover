@@ -106,7 +106,7 @@ class Mover:
 
     def initiateMove(self):
         for dir in self.desDirs:
-            files = list(filter(lambda file: file.path.endswith(tuple(dir.acceptedSuffixes)) and not os.path.exists(dir.path + file.cDate.strftime("%Y-%m-%d\\") + file.name), self.srcFiles))
+            files = list(filter(lambda file: file.path.endswith(tuple(dir.acceptedSuffixes)) and not os.path.exists(os.path.join(dir.path, file.cDate.strftime("%Y-%m-%d"), file.name)), self.srcFiles))
             for file in files:
                 self.moves.append([file, dir])
                 Es.log(f"File \"{file.path}\" was linked to Directory \"{dir.path}\"")
@@ -125,7 +125,7 @@ class Mover:
             mbTransferred.append([mbTransferred[-1][0] + dataset[0].sizeMB, datetime.now()])
             print(self.getTransferedOverview(mbTransferred) + Mover.getTransferedSpeed(mbTransferred), end = "\r")
         print("Transfer successfully completed!                                                                                              ")
-        if ES.SAVE_LOG:
+        if Es.SAVE_LOG:
             Es.log("Detailed Log: " + Es.logDir)
         else:
             print("To get a detailed log, please set the variable \"SAVE_LOG\" to \"True\".")
