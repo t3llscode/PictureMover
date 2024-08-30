@@ -14,6 +14,8 @@ def main():
 
 class Es:
 
+    SAVE_LOG = True
+
     picSuffixes = [".ARW", ".JPG", ".dng", ".tif"]
     vidSuffixes = [".XML", ".MP4"]
 
@@ -26,13 +28,15 @@ class Es:
     logDir = "C:\\path\\to\\log.txt"
 
     def log(text):
-        t = str(datetime.now()) + " " + text
-        with open(Es.logDir, "a") as file:
-            file.write(t + "\n")
+        if Es.SAVE_LOG:
+            t = str(datetime.now()) + " " + text
+            with open(Es.logDir, "a") as file:
+                file.write(t + "\n")
 
     def resetLog():
-        with open(Es.logDir, "w") as file:
-            file.write("")
+        if Es.SAVE_LOG:
+            with open(Es.logDir, "w") as file:
+                file.write("")
 
 class File:
 
@@ -116,7 +120,11 @@ class Mover:
             shutil.copy2(dataset[0].path, desDir + dataset[0].name)
             mbTransferred.append([mbTransferred[-1][0] + dataset[0].sizeMB, datetime.now()])
             print(self.getTransferedOverview(mbTransferred) + Mover.getTransferedSpeed(mbTransferred), end = "\r")
-        print("Transfer successfully completed!                                                                                              \nDetailed Log: " + Es.logDir)
+        print("Transfer successfully completed!")
+        if Es.SAVE_LOG:
+            Es.log("Detailed Log: " + Es.logDir)
+        else:
+            print("To get a detailed log, please set the variable \"SAVE_LOG\" to \"True\".")
 
     def getTransferedSpeed(list):
         if len(list) > 1:
