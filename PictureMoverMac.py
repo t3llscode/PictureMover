@@ -27,7 +27,8 @@ class Es:
 
     picPath = "/Volumes/4TB 990Pro/SD Cards/00 Pictures/"
     vidPath = "/Volumes/4TB 990Pro/SD Cards/01 Videos/"
-    sdCard = "/Volumes/SD Card One/"
+    sdCardName = "SD Card One"
+    sdCard = f"/Volumes/{sdCardName}/"
 
     SAVE_LOG = False
     logDir = "/path/to/log.txt"
@@ -39,6 +40,7 @@ class Es:
                 file.write(t + "\n")
 
     def resetLog():
+        
         if Es.SAVE_LOG:
             with open(Es.logDir, "w") as file:
                 file.write("")
@@ -52,8 +54,12 @@ class File:
     cDate = None
 
     def __init__(self, _path) -> None:
+        self.sdCardName = Es.sdCardName # this could be done different in a future version to run over multiple SD cards
         self.path = _path.replace("\\", "\\\\")
+        self.dir = os.path.dirname(self.path)
         self.name = os.path.basename(self.path)
+        self.newName = f"{Es.sdCardName}-{self.name}"
+        self.newPath = os.path.join(self.dir, self.newName)
         self.suffix = os.path.splitext(self.path)[-1]
         self.sizeMB = os.path.getsize(self.path)/1024/1024
         self.cDate = datetime.fromtimestamp(os.path.getctime(self.path))
@@ -106,7 +112,7 @@ class Mover:
 
     def initiateMove(self):
         for dir in self.desDirs:
-            files = list(filter(lambda file: file.path.endswith(tuple(dir.acceptedSuffixes)) and not os.path.exists(os.path.join(dir.path, file.cDate.strftime("%Y-%m-%d"), file.name)), self.srcFiles))
+            files = list(filter(lambda file: file.path.endswith(tuple(dir.acceptedSuffixes)) and not os.path.exists(os.path.join(dir.path, file.cDate.strftime("%Y-%m-%d"), file.newName)), self.srcFiles))
             for file in files:
                 self.moves.append([file, dir])
                 Es.log(f"File \"{file.path}\" was linked to Directory \"{dir.path}\"")
@@ -121,7 +127,7 @@ class Mover:
             desDir = dataset[1].path + dataset[0].cDate.strftime("%Y-%m-%d/")
             if not os.path.exists(desDir):
                 Directory(desDir, dataset[1].acceptedSuffixes)
-            shutil.copy2(dataset[0].path, desDir + dataset[0].name)
+            shutil.copy2(dataset[0].path, desDir + dataset[0].newName)
             mbTransferred.append([mbTransferred[-1][0] + dataset[0].sizeMB, datetime.now()])
             print(self.getTransferedOverview(mbTransferred) + Mover.getTransferedSpeed(mbTransferred), end = "\r")
         print("Transfer successfully completed!                                                                                              ")
