@@ -27,7 +27,7 @@ class Es:
 
     picPath = "/Volumes/4TB 990Pro/SD Cards/00 Pictures/"
     vidPath = "/Volumes/4TB 990Pro/SD Cards/01 Videos/"
-    sdCardName = "SD Card One"
+    sdCardName = "Untitled"
     sdCard = f"/Volumes/{sdCardName}/"
 
     SAVE_LOG = False
